@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Progress Summary</title>
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --card: #ffffff;
+      --heading: #1f2d3d;
+      --muted: #55657a;
+      --line: #dfe6ee;
+      --blue: #1f3b5f;
+      --blue-soft: #eaf2fb;
+      --accent: #d8eaf7;
+      --text: #1d2430;
+      --good: #2f8f5b;
+      --warn: #b76b18;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 32px auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(22,34,51,0.08);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--blue) 0%, #2a4d75 100%);
+      color: white;
+      padding: 30px 36px 22px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.2;
+    }
+
+    .header p {
+      margin: 10px 0 0;
+      color: rgba(255,255,255,0.9);
+      font-size: 14px;
+    }
+
+    .content {
+      padding: 28px 36px 32px;
+    }
+
+    .intro {
+      margin-bottom: 26px;
+      font-size: 15px;
+      color: var(--heading);
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(240px, 1fr));
+      gap: 14px;
+      margin: 14px 0 28px;
+    }
+
+    .status-card {
+      background: var(--blue-soft);
+      border: 1px solid #d5e5f5;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .status-card strong {
+      display: block;
+      color: var(--heading);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .status-card span {
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    section {
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      color: var(--heading);
+    }
+
+    p, li {
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    .timeline-block {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 10px;
+    }
+
+    .timeline-block h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: var(--blue);
+    }
+
+    .timeline-block p {
+      margin: 0 0 8px;
+    }
+
+    .timeline-block p:last-child {
+      margin-bottom: 0;
+    }
+
+    .highlight-note {
+      margin: 16px 0 12px;
+      padding: 14px 16px;
+      border-left: 6px solid #d07a1d;
+      background: #fff5e8;
+      color: #7a430d;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(208, 122, 29, 0.08);
+    }
+
+    .highlight-note ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+      font-weight: 600;
+    }
+
+    .highlight-note li {
+      margin-top: 6px;
+    }
+
+    .note-yellow {
+      display: inline-block;
+      background: #fff3b0;
+      border-left: 4px solid #d4a700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      color: #5c4a00;
+      font-weight: 700;
+    }
+
+    .activity-pink {
+      display: inline-block;
+      background: #fde7ef;
+      border-left: 4px solid #d9487a;
+      padding: 4px 8px;
+      border-radius: 6px;
+      color: #7a1f3d;
+      font-weight: 700;
+    }
+
+    .calorie-blue {
+      display: inline-block;
+      background: #eaf3ff;
+      border-left: 4px solid #5b8def;
+      padding: 4px 8px;
+      border-radius: 6px;
+      color: #173d7a;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid #cdd8e3;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--blue);
+      color: white;
+      font-weight: bold;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .summary-box {
+      background: var(--accent);
+      border: 1px solid #cfe3f4;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 10px;
+    }
+
+    .summary-box strong {
+      color: var(--heading);
+    }
+
+    .summary-box p {
+      margin: 8px 0;
+      font-size: 15px;
+    }
+
+    .summary-box .goal-line {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--heading);
+    }
+
+    .tiny-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin-top: 14px;
+    }
+
+    .month-group {
+      margin-top: 20px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .month-group h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: var(--blue);
+    }
+
+    .photo-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(22,34,51,0.05);
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .photo-card img {
+      display: block;
+      width: 100%;
+      height: 420px;
+      object-fit: contain;
+      background: #f2f5f8;
+      border-radius: 8px;
+    }
+
+    .photo-caption {
+      padding: 10px 12px 2px;
+      font-size: 13px;
+      color: var(--muted);
+      background: transparent;
+      border-top: none;
+    }
+
+    .photo-note-box {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-left: 4px solid #d65b6d;
+      background: #fff1f3;
+      border-radius: 8px;
+      color: #7b2a39;
+      font-size: 15px;
+      font-style: normal;
+    }
+
+    .photo-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      z-index: 9999;
+      cursor: pointer;
+    }
+
+    .lightbox.show {
+      display: flex;
+    }
+
+    .lightbox-content {
+      position: relative;
+      max-width: 92vw;
+      max-height: 92vh;
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+      cursor: default;
+    }
+
+    .lightbox-content img {
+      display: block;
+      max-width: 92vw;
+      max-height: 92vh;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .lightbox-close:hover {
+      background: rgba(255,255,255,0.28);
+    }
+
+    .current-macros {
+      margin-top: 22px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .current-macros h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: var(--blue);
+    }
+
+    .current-macros .photo-card {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .macro-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .workout-split {
+      margin-top: 20px;
+      padding: 12px 14px;
+      background: #f8fbff;
+      border: 1px solid #dfeaf7;
+      border-radius: 10px;
+    }
+
+    .workout-split h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: var(--blue);
+    }
+
+    .workout-split p {
+      margin: 6px 0;
+    }
+
+    .workout-split ul {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .section-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 18px;
+      padding: 12px 14px;
+      background: #f3f7fb;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .section-nav a {
+      text-decoration: none;
+      color: var(--blue);
+      background: white;
+      border: 1px solid #dfeaf7;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .section-nav a:hover {
+      background: #edf5ff;
+    }
+
+    @media (max-width: 720px) {
+      .page { margin: 0; border-radius: 0; }
+      .content { padding: 20px 18px 22px; }
+      .status-grid { grid-template-columns: 1fr; }
+      .header { padding: 24px 18px 18px; }
+      .header h1 { font-size: 26px; }
+      th, td { font-size: 12px; padding: 7px 8px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .page { box-shadow: none; border: none; max-width: none; margin: 0; }
+      .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>Gym Progress Summary</h1>
+      <p>Prepared for trainer review</p>
+    </div>
+
+    <div class="content">
+      <div class="intro">
+        This summary captures the last year of training, nutrition, bodyweight trend, and the main challenges I want help with.
+      </div>
+
+      <nav class="section-nav" aria-label="Section navigation">
+        <a href="#personal-details">Personal Details</a>
+        <a href="#current-status">Current Status</a>
+        <a href="#timeline">Training Timeline</a>
+        <a href="#what-gone-well">What Has Gone Well</a>
+        <a href="#bottlenecks">Main Issues</a>
+        <a href="#questions">Questions</a>
+        <a href="#summary">Overall Summary</a>
+        <a href="#weight-tracking">Weight Tracking</a>
+        <a href="#photos">Progress Photos</a>
+      </nav>
+
+      <section id="personal-details">
+        <h2>Personal Details</h2>
+        <ul>
+          <li><strong>Name:</strong> Aman Deep</li>
+          <li><strong>Height:</strong> 165 cm</li>
+          <li><strong>Starting Weight:</strong> Dec 2025 - 59.5 kg / 130 lbs</li>
+          <li><strong>Current Weight:</strong> Nov 2026 - 50 kg / 110 lbs</li>
+        </ul>
+      </section>
+
+      <section id="current-status">
+        <h2>1) Current Status</h2>
+        <div class="status-grid">
+          <div class="status-card">
+            <strong>Current average weight</strong>
+            <span>49.60 kg</span>
+          </div>
+          <div class="status-card">
+            <strong>Weight trend</strong>
+            <span>Down from 59.5 kg average at the start of tracking, total loss of around 8.75 kg or 15.0%</span>
+          </div>
+          <div class="status-card">
+            <strong>Current training</strong>
+            <span>4-day upper/lower split, 2 sets, 8-10 reps, each muscle group 2x/week</span>
+          </div>
+          <div class="status-card">
+            <strong>Calories</strong>
+            <span>1500-1550 kcal/day</span>
+          </div>
+          <div class="status-card">
+            <strong>Cardio</strong>
+            <span>15-30 min incline treadmill walk, around 9k steps per week</span>
+          </div>
+          <div class="status-card">
+            <strong>Main concern</strong>
+            <span>Looking smaller and leaner but still carrying lower belly fat. Confused if I should continue the cut and what to change.</span>
+          </div>
+        </div>
+
+        <div class="current-macros">
+          <h3>Current Macros</h3>
+          <div class="photo-card" data-image="photos/macros.png" data-caption="Current Macros">
+            <img src="photos/macros.png" alt="Current macros" />
+            <div class="photo-caption">Current Macros</div>
+          </div>
+          <div class="macro-note">I only optimized my macros sometime in September. But I haven't implemented carbs tracking properly yet. Still improving it.</div>
+        </div>
+
+        <div class="workout-split">
+          <h3>Workout Split</h3>
+          <p><strong>Before July:</strong> Tried push pull legs, PPL-UL, was changing exercises too often. Little to no cardio. 5k weekly steps average</p>
+          <p><strong>Since July:</strong> Upper Lower rest Upper Lower rest. I rarely change exercises. 6k steps average. Treadmill walks 15 min</p>
+          <p><strong>Sept:</strong> Started training abs - Cable crunches. 8k steps. Incline treadmill walks - 15min</p>
+          <p><strong>Current split:</strong> UL Rest UL. 9k steps average. 15-20 mins incline treadmill walks</p>
+          <p><strong>Reps:</strong> 2 sets, 7-10 reps</p>
+
+          <p><strong>Upper:</strong></p>
+          <ul>
+            <li>Pull ups - Assisted + without assist (can do 5 only right now)</li>
+            <li>Pec fly</li>
+            <li>Incline bench Dumbbell press</li>
+            <li>Shoulder machine press (plates)</li>
+            <li>Seated close-grip row</li>
+            <li>Lateral raises with dumbbells</li>
+            <li>Bicep curls</li>
+            <li>Tricep cable pushdowns</li>
+          </ul>
+
+          <p><strong>Legs:</strong></p>
+          <ul>
+            <li>Leg extension</li>
+            <li>Leg curl</li>
+            <li>Machine leg press</li>
+            <li>Dumbbell RDL</li>
+            <li>Abductor (started from November)</li>
+            <li>Calf raises on leg press machine</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="timeline">
+        <h2>2) Training and Nutrition Timeline</h2>
+
+        <div class="timeline-block">
+          <h3>Dec 2025 - Feb 2026</h3>
+          <p><span class="note-yellow"><strong>Note:</strong> Missed 1 week each month due to sickness.</span></p>
+          <p><strong>Diet:</strong> <span class="calorie-blue">Daily calorie tracking, started with maintenance at 2000 calories.</span></p>
+          <p><strong>Weight trend:</strong> Starting weight - 58.0 kg, end weight - 58.3 kg</p>
+          <ul>
+            <li><strong>Focus:</strong> Maximizing protein - 110-120 gms, filling rest of calories with fats and carbs.</li>
+          </ul>
+          <p><strong>Foods:</strong> Chicken breast, Greek yoghurt, Eggs, Soya chunks, Skimmed milk, Roti (wheat flour), white rice, Paneer (cottage cheese).</p>
+          <p><strong>Training and Activity:</strong></p>
+          <ul>
+            <li><strong>Workout:</strong> Push Pull legs - 6 days x week, 4 sets, 10-12 reps. Inconsistent eventually turning into 3-4 days push pull, not hitting each muscle 2x week. Too much volume. Not training to failure.</li>
+            <li><strong>Activity:</strong> <span class="activity-pink">Little to no cardio. 15 minutes treadmill walk. Steps weekly average - 5k.</span></li>
+          </ul>
+          <p><strong>Results:</strong></p>
+          <ul>
+            <li>Gained strength and habit, little muscle growth but overall good feeling.</li>
+            <li>Belly fat too much. Insecure. Researched more and decided to go on a small deficit cut/body recomp after this.</li>
+          </ul>
+        </div>
+
+        <div class="timeline-block">
+          <h3>March - June</h3>
+          <p><strong>Diet:</strong> <span class="calorie-blue">Daily calorie tracking, 1800 calories.</span></p>
+          <p><strong>Weight trend:</strong> Starting weight - 58.1 kg, end weight - 55.3 kg</p>
+          <ul>
+            <li><strong>Focus:</strong> Maximizing protein - 110-120 gms, filling the rest of calories with fats and carbs.</li>
+          </ul>
+          <p><strong>Foods:</strong> Inconsistent with chicken breast, mostly on Greek yoghurt, Eggs, Soya chunks, Skimmed milk, Roti (wheat flour), white rice, Paneer (cottage cheese).</p>
+          <p><strong>Training and Activity:</strong></p>
+          <ul>
+            <li><strong>Workout:</strong> Push Pull legs, upper lower - 5 days x week, 3 sets, 10-12 reps. Inconsistent eventually turned into 3-4 days push pull, not hitting each muscle 2x week. Too much volume. Not training to failure.</li>
+            <li><strong>Activity:</strong> <span class="activity-pink">Little to no cardio. 15 mins treadmill walk. Steps weekly average - 5k.</span> Optimized workout - removed redundant exercises. For example: lat pull down, pull ups - chose one.</li>
+          </ul>
+          <p><strong>Results:</strong></p>
+          <ul>
+            <li>Gained strength and habit, started losing waist inches, overall looked better, but still a lot of visible fat. Overall good feeling about the progress.</li>
+            <li>Still a lot belly fat. But decided to stick with this as waist was reducing.</li>
+          </ul>
+        </div>
+
+        <div class="timeline-block">
+          <h3>July - Aug</h3>
+          <p><strong>Diet:</strong> <span class="calorie-blue">Daily calorie tracking, 1750 calories.</span></p>
+          <p><strong>Weight trend:</strong> Starting weight - 54.6 kg, end weight - 53.4 kg</p>
+          <ul>
+            <li><strong>Focus:</strong> Learnt about carb importance. Dropped protein a bit, increased carbs a bit. But still not taking carbs seriously. Inconsistent.</li>
+          </ul>
+          <p><strong>Foods:</strong> Inconsistent with chicken breast, mostly on Greek yoghurt, Eggs, Soya chunks, Skimmed milk, Roti (wheat flour), white rice, Paneer (cottage cheese).</p>
+          <p><strong>Training and Activity:</strong></p>
+          <ul>
+            <li><strong>Workout:</strong> Upper lower - 4 days x week, 2 sets, 8-10 reps. Consistent, hitting each muscle 2x week. Learned about training to failure and started implementing.</li>
+            <li><strong>Activity:</strong> <span class="activity-pink">15-30 mins incline treadmill walk. Steps weekly average - 7k.</span> Chose workouts I can progressively overload better - shoulder dumbbell, machine shoulder press, squats, bench press etc.</li>
+          </ul>
+          <p><strong>Results:</strong></p>
+          <ul>
+            <li>Gained strength and habit, started losing waist inches, overall looked better, but still a lot of visible lower belly fat. Overall good feeling about the progress.</li>
+            <li>Still a lot lower belly fat. But decided to stick with this as waist was reducing. Felt everything going good.</li>
+          </ul>
+        </div>
+
+        <div class="highlight-note">
+          <strong>Note:</strong>
+          <ul>
+            <li>After August I started looking smaller.</li>
+            <li>30 Aug - 15 Sept I lost 1 Kg (higher than my usual slow rate, because I was on a trip, and maybe I cut extra calories out of fear of gaining weight).</li>
+            <li>My analysis on why I started looking smaller after this: This was a period where I started entering lower weight ranges, deeper stage of cut, and carbs became more important than ever. Even though I learnt about importance of carbs and timing it around workouts, I was still not implementing it properly.</li>
+            <li>Or it’s just a phase I need to go through during a cut.</li>
+            <li>But I need to understand this more from you.</li>
+          </ul>
+        </div>
+
+        <div class="timeline-block">
+          <h3>Sept - Nov</h3>
+          <p><strong>Diet:</strong> <span class="calorie-blue">Daily calorie tracking, 1550-1500 calories.</span></p>
+          <p><strong>Weight trend:</strong> Starting weight - 51.5 kg, end weight - 50.4 kg</p>
+          <ul>
+            <li><strong>Focus:</strong> Learnt about carbs importance. Dropped protein a bit, increased carbs a bit. But still not taking carbs seriously. Inconsistent. Learnt about carbs around workout. Still not implemented properly.</li>
+          </ul>
+          <p><strong>Foods:</strong> Inconsistent with chicken breast, mostly on Greek yoghurt, Eggs, Soya chunks, Skimmed milk, Roti (wheat flour), white rice, Paneer (cottage cheese).</p>
+          <p><strong>Training and Activity:</strong></p>
+          <ul>
+            <li><strong>Workout:</strong> Upper lower - 4 days x week, 2 sets, 8-10 reps. Consistent, hitting each muscle 2x week. Learned about training to failure and started implementing.</li>
+            <li><strong>Activity:</strong> <span class="activity-pink">15-30 mins incline treadmill walk. Steps weekly average - 9k.</span></li>
+          </ul>
+          <p><strong>Results:</strong></p>
+          <ul>
+            <li>Gained strength and habit, losing waist inches, started looking too thin, small.</li>
+            <li>Can see ab lineouts. Still lower belly fat. But decided to stick with this as waist was reducing. Looking small and bad.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="what-gone-well">
+        <h2>3) What Has Gone Well</h2>
+        <ul>
+          <li>Consistent calorie intake tracking.</li>
+          <li>Upper lower workout structure.</li>
+          <li>Consistent weekly average weight tracking.</li>
+          <li>Strength has improved.</li>
+          <li>Waist has reduced and body composition has improved over time. CLothes fall on me better</li>
+        </ul>
+      </section>
+
+      <section id="bottlenecks">
+        <h2>4) Main Issues, Bottlenecks and possible improvements</h2>
+        <ul>
+          <li>Looking a smaller and skinner version of myself</li>
+          <li>Confused If I should continue on cut or do a lean bulk phase and come back. Since I am already at a low weight of 50kgs</li>
+          <li>Understand carbs? Need to time carbs better around workouts.?</li>
+          <li>I still have a lot of wiggle room to increase steps, cardio. Possiblly even lower calorie intake because so far during my cut I've never felt starving</li>
+          <li>Improve sleep.</li>
+          <li>Understand supplementation.</li>
+        </ul>
+      </section>
+
+      <section id="questions">
+        <h2>5) Questions for Trainer</h2>
+        <ul>
+          <li>Why do I look small? Is it a phase one has to go through during a cut or because of not focusing on carbs?</li>
+          <li>I am at a very low weight, and have been cutting for a long time now - should I continue the cut or lean bulk for 6-8 months and start the cut again from a higher baseline?</li>
+        </ul>
+      </section>
+
+      <section id="summary">
+        <h2>6) Overall Progress Summary</h2>
+        <div class="summary-box">
+          <p><strong>Starting average weight:</strong> 58.35 kg</p>
+          <p><strong>Latest average weight:</strong> 49.60 kg</p>
+          <p><strong>Total weight lost:</strong> 8.75 kg</p>
+          <p><strong>Percentage lost:</strong> 15.0%</p>
+          <p class="goal-line"><strong>Overall goal:</strong> Lose lower belly fat, have visible abs, no rolling over fat while sitting, grow muscle, not look skinny or small, and look good overall.</p>
+        </div>
+      </section>
+
+      <section id="weight-tracking">
+        <h2>7) Full Weekly Weight Tracking</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Week</th>
+              <th>Date range</th>
+              <th>Avg. weight</th>
+              <th>Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Nov 30–Dec 6</td><td>58.35 kg</td><td>—</td></tr>
+            <tr><td>2</td><td>Dec 14–20</td><td>57.75 kg</td><td>-0.60 kg</td></tr>
+            <tr><td>3</td><td>Dec 21–27</td><td>57.87 kg</td><td>+0.12 kg</td></tr>
+            <tr><td>4</td><td>Dec 28–Jan 3</td><td>58.09 kg</td><td>+0.22 kg</td></tr>
+            <tr><td>5</td><td>Jan 4–10</td><td>57.97 kg</td><td>-0.12 kg</td></tr>
+            <tr><td>6</td><td>Jan 11–17</td><td>58.21 kg</td><td>+0.24 kg</td></tr>
+            <tr><td>7</td><td>Jan 18–24</td><td>58.40 kg</td><td>+0.19 kg</td></tr>
+            <tr><td>8</td><td>Jan 25–31</td><td>58.25 kg</td><td>-0.15 kg</td></tr>
+            <tr><td>9</td><td>Feb 1–7</td><td>57.84 kg</td><td>-0.41 kg</td></tr>
+            <tr><td>10</td><td>Feb 8–14</td><td>58.17 kg</td><td>+0.34 kg</td></tr>
+            <tr><td>11</td><td>Feb 15–21</td><td>58.53 kg</td><td>+0.36 kg</td></tr>
+            <tr><td>12</td><td>Feb 22–28</td><td>58.67 kg</td><td>+0.14 kg</td></tr>
+            <tr><td>13</td><td>Mar 1–7</td><td>58.50 kg</td><td>-0.17 kg</td></tr>
+            <tr><td>14</td><td>Mar 15–21</td><td>58.19 kg</td><td>-0.31 kg</td></tr>
+            <tr><td>15</td><td>Mar 22–28</td><td>58.08 kg</td><td>-0.11 kg</td></tr>
+            <tr><td>16</td><td>Mar 29–Apr 4</td><td>57.74 kg</td><td>-0.34 kg</td></tr>
+            <tr><td>17</td><td>Apr 5–11</td><td>57.55 kg</td><td>-0.19 kg</td></tr>
+            <tr><td>18</td><td>Apr 12–18</td><td>57.04 kg</td><td>-0.51 kg</td></tr>
+            <tr><td>19</td><td>Apr 19–25</td><td>56.89 kg</td><td>-0.15 kg</td></tr>
+            <tr><td>20</td><td>Apr 26–May 2</td><td>56.42 kg</td><td>-0.47 kg</td></tr>
+            <tr><td>21</td><td>May 3–9</td><td>56.38 kg</td><td>-0.04 kg</td></tr>
+            <tr><td>22</td><td>May 10–16</td><td>56.19 kg</td><td>-0.19 kg</td></tr>
+            <tr><td>23</td><td>May 17–23</td><td>56.06 kg</td><td>-0.13 kg</td></tr>
+            <tr><td>24</td><td>May 24–30</td><td>55.87 kg</td><td>-0.20 kg</td></tr>
+            <tr><td>25</td><td>May 31–Jun 6</td><td>55.55 kg</td><td>-0.32 kg</td></tr>
+            <tr><td>26</td><td>Jun 7–13</td><td>55.36 kg</td><td>-0.19 kg</td></tr>
+            <tr><td>27</td><td>Jun 14–20</td><td>55.17 kg</td><td>-0.19 kg</td></tr>
+            <tr><td>28</td><td>Jun 21–27</td><td>54.98 kg</td><td>-0.19 kg</td></tr>
+            <tr><td>29</td><td>Jun 28–Jul 4</td><td>54.75 kg</td><td>-0.23 kg</td></tr>
+            <tr><td>30</td><td>Jul 5–11</td><td>54.64 kg</td><td>-0.11 kg</td></tr>
+            <tr><td>31</td><td>Jul 12–18</td><td>54.40 kg</td><td>-0.24 kg</td></tr>
+            <tr><td>32</td><td>Jul 19–25</td><td>54.20 kg</td><td>-0.20 kg</td></tr>
+            <tr><td>33</td><td>Jul 26–Aug 1</td><td>54.45 kg</td><td>+0.25 kg</td></tr>
+            <tr><td>34</td><td>Aug 2–8</td><td>54.00 kg</td><td>-0.45 kg</td></tr>
+            <tr><td>35</td><td>Aug 9–15</td><td>53.31 kg</td><td>-0.69 kg</td></tr>
+            <tr><td>36</td><td>Aug 16–22</td><td>52.95 kg</td><td>-0.36 kg</td></tr>
+            <tr><td>37</td><td>Aug 23–29</td><td>52.85 kg</td><td>-0.10 kg</td></tr>
+            <tr><td>38</td><td>Sep 6–12</td><td>51.83 kg</td><td>-1.02 kg</td></tr>
+            <tr><td>39</td><td>Sep 13–19</td><td>51.37 kg</td><td>-0.46 kg</td></tr>
+            <tr><td>40</td><td>Sep 20–26</td><td>51.33 kg</td><td>-0.04 kg</td></tr>
+            <tr><td>41</td><td>Sep 27–Oct 3</td><td>51.51 kg</td><td>+0.18 kg</td></tr>
+            <tr><td>42</td><td>Oct 4–10</td><td>51.35 kg</td><td>-0.16 kg</td></tr>
+            <tr><td>43</td><td>Oct 11–17</td><td>51.02 kg</td><td>-0.33 kg</td></tr>
+            <tr><td>44</td><td>Oct 18–24</td><td>50.96 kg</td><td>-0.06 kg</td></tr>
+            <tr><td>45</td><td>Oct 25–31</td><td>50.66 kg</td><td>-0.30 kg</td></tr>
+            <tr><td>46</td><td>Nov 1–7</td><td>49.85 kg</td><td>-0.81 kg</td></tr>
+            <tr><td>47</td><td>Nov 8–14</td><td>49.69 kg</td><td>-0.16 kg</td></tr>
+            <tr><td>48</td><td>Nov 15–21, 2026</td><td>49.60 kg</td><td>-0.09 kg*</td></tr>
+          </tbody>
+        </table>
+
+        <p class="tiny-note">The latest week's change is as supplied. The Nov 15–21 week is still in progress.</p>
+      </section>
+
+      <section id="photos">
+        <h2>8) Progress Photos by Month</h2>
+        <div class="photo-note-box">I hate taking photos, hence the low effort ugly photos. But it will give you an idea.</div>
+
+        <div class="month-group">
+          <h3>Jan 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20260108_144941248_HDR.jpg" data-caption="Jan 2026 - Start of the year">
+              <img src="photos/IMG_20260108_144941248_HDR.jpg" alt="Jan 2026 progress photo 1" />
+              <div class="photo-caption">Jan 2026 - Start of the year</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260108_144948555_HDR.jpg" data-caption="Jan 2026 - Progress shot 2">
+              <img src="photos/IMG_20260108_144948555_HDR.jpg" alt="Jan 2026 progress photo 2" />
+              <div class="photo-caption">Jan 2026 - Progress shot 2</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260108_145200598_HDR.jpg" data-caption="Jan 2026">
+              <img src="photos/IMG_20260108_145200598_HDR.jpg" alt="Jan 2026 progress photo 3" />
+              <div class="photo-caption">Jan 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-group">
+          <h3>Mar 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20260303_133316974_HDR.jpg" data-caption="Mar 2026">
+              <img src="photos/IMG_20260303_133316974_HDR.jpg" alt="Mar 2026 progress photo 1" />
+              <div class="photo-caption">Mar 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260303_133355407_HDR.jpg" data-caption="Mar 2026 - Continued progress">
+              <img src="photos/IMG_20260303_133355407_HDR.jpg" alt="Mar 2026 progress photo 2" />
+              <div class="photo-caption">Mar 2026 - Continued progress</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-group">
+          <h3>Apr 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20260430_152754200_HDR.jpg" data-caption="Apr 2026">
+              <img src="photos/IMG_20260430_152754200_HDR.jpg" alt="Apr 2026 progress photo 1" />
+              <div class="photo-caption">Apr 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260430_152809794_HDR.jpg" data-caption="Apr 2026 - Build phase">
+              <img src="photos/IMG_20260430_152809794_HDR.jpg" alt="Apr 2026 progress photo 2" />
+              <div class="photo-caption">Apr 2026 - Build phase</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-group">
+          <h3>Jun 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20260612_151204673_HDR.jpg" data-caption="Jun 2026">
+              <img src="photos/IMG_20260612_151204673_HDR.jpg" alt="Jun 2026 progress photo 1" />
+              <div class="photo-caption">Jun 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260612_151219031_HDR.jpg" data-caption="Jun 2026">
+              <img src="photos/IMG_20260612_151219031_HDR.jpg" alt="Jun 2026 progress photo 2" />
+              <div class="photo-caption">Jun 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260612_151248825_HDR.jpg" data-caption="Jun 2026">
+              <img src="photos/IMG_20260612_151248825_HDR.jpg" alt="Jun 2026 progress photo 3" />
+              <div class="photo-caption">Jun 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-group">
+          <h3>Jul 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20260709_121806771_HDR.jpg" data-caption="Jul 2026">
+              <img src="photos/IMG_20260709_121806771_HDR.jpg" alt="Jul 2026 progress photo 1" />
+              <div class="photo-caption">Jul 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260709_121817141_HDR.jpg" data-caption="Jul 2026">
+              <img src="photos/IMG_20260709_121817141_HDR.jpg" alt="Jul 2026 progress photo 2" />
+              <div class="photo-caption">Jul 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260709_121825440_HDR.jpg" data-caption="Jul 2026">
+              <img src="photos/IMG_20260709_121825440_HDR.jpg" alt="Jul 2026 progress photo 3" />
+              <div class="photo-caption">Jul 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-group">
+          <h3>Aug 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20260827_220837398_HDR.jpg" data-caption="Aug 2026">
+              <img src="photos/IMG_20260827_220837398_HDR.jpg" alt="Aug 2026 progress photo" />
+              <div class="photo-caption">Aug 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-group">
+          <h3>Sep 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20260926_215541028_HDR.jpg" data-caption="Sep 2026">
+              <img src="photos/IMG_20260926_215541028_HDR.jpg" alt="Sep 2026 progress photo 1" />
+              <div class="photo-caption">Sep 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260926_215551945_HDR.jpg" data-caption="Sep 2026">
+              <img src="photos/IMG_20260926_215551945_HDR.jpg" alt="Sep 2026 progress photo 2" />
+              <div class="photo-caption">Sep 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260926_215611711_HDR.jpg" data-caption="Sep 2026">
+              <img src="photos/IMG_20260926_215611711_HDR.jpg" alt="Sep 2026 progress photo 3" />
+              <div class="photo-caption">Sep 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260926_215616462_HDR.jpg" data-caption="Sep 2026">
+              <img src="photos/IMG_20260926_215616462_HDR.jpg" alt="Sep 2026 progress photo 4" />
+              <div class="photo-caption">Sep 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260929_001341933_HDR.jpg" data-caption="Sep 2026">
+              <img src="photos/IMG_20260929_001341933_HDR.jpg" alt="Sep 2026 progress photo 5" />
+              <div class="photo-caption">Sep 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20260929_001356049_HDR.jpg" data-caption="Sep 2026">
+              <img src="photos/IMG_20260929_001356049_HDR.jpg" alt="Sep 2026 progress photo 6" />
+              <div class="photo-caption">Sep 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-group">
+          <h3>Oct 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20261024_175654877.jpg" data-caption="Oct 2026">
+              <img src="photos/IMG_20261024_175654877.jpg" alt="Oct 2026 progress photo 1" />
+              <div class="photo-caption">Oct 2026</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20261024_175800115_HDR.jpg" data-caption="Oct 2026">
+              <img src="photos/IMG_20261024_175800115_HDR.jpg" alt="Oct 2026 progress photo 2" />
+              <div class="photo-caption">Oct 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="month-group">
+          <h3>Nov 2026</h3>
+          <div class="photo-gallery">
+            <div class="photo-card" data-image="photos/IMG_20261115_090159543_HDR~2.jpg" data-caption="Nov 2026 - Current">
+              <img src="photos/IMG_20261115_090159543_HDR~2.jpg" alt="Nov 2026 progress photo 1" />
+              <div class="photo-caption">Nov 2026 - Current</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20261115_090210841_HDR~2.jpg" data-caption="Nov 2026 - Current">
+              <img src="photos/IMG_20261115_090210841_HDR~2.jpg" alt="Nov 2026 progress photo 2" />
+              <div class="photo-caption">Nov 2026 - Current</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20261115_090215741_HDR~2.jpg" data-caption="Nov 2026 - Current">
+              <img src="photos/IMG_20261115_090215741_HDR~2.jpg" alt="Nov 2026 progress photo 3" />
+              <div class="photo-caption">Nov 2026 - Current</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20261115_090224901_HDR~2.jpg" data-caption="Nov 2026 - Current">
+              <img src="photos/IMG_20261115_090224901_HDR~2.jpg" alt="Nov 2026 progress photo 4" />
+              <div class="photo-caption">Nov 2026 - Current</div>
+            </div>
+            <div class="photo-card" data-image="photos/IMG_20261115_090227836_HDR~2.jpg" data-caption="Nov 2026 - Current">
+              <img src="photos/IMG_20261115_090227836_HDR~2.jpg" alt="Nov 2026 progress photo 5" />
+              <div class="photo-caption">Nov 2026 - Current</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="photo-note">The gallery is sorted month-wise from Jan 2026 through Nov 2026 using the dates embedded in the filenames.</p>
+      </section>
+
+      <div class="lightbox" id="lightbox" aria-label="Fullscreen photo viewer">
+        <div class="lightbox-content">
+          <button class="lightbox-close" type="button" aria-label="Close">×</button>
+          <img id="lightboxImage" src="" alt="Expanded progress image" />
+        </div>
+      </div>
+
+      <script>
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const closeButton = document.querySelector('.lightbox-close');
+        const photoCards = document.querySelectorAll('.photo-card');
+
+        photoCards.forEach(card => {
+          card.addEventListener('click', () => {
+            const imageSrc = card.getAttribute('data-image');
+            if (!imageSrc) return;
+            lightboxImage.src = imageSrc;
+            lightbox.classList.add('show');
+          });
+        });
+
+        function closeLightbox() {
+          lightbox.classList.remove('show');
+          lightboxImage.src = '';
+        }
+
+        closeButton.addEventListener('click', closeLightbox);
+
+        lightbox.addEventListener('click', (event) => {
+          if (event.target === lightbox || event.target === closeButton) {
+            closeLightbox();
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && lightbox.classList.contains('show')) {
+            closeLightbox();
+          }
+        });
+      </script>
+    </div>
+  </div>
+</body>
+</html>
